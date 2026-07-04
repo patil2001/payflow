@@ -1,5 +1,7 @@
 # PayFlow 💸
 
+[![CI](https://github.com/patil2001/payflow/actions/workflows/ci.yml/badge.svg)](https://github.com/patil2001/payflow/actions/workflows/ci.yml)
+
 A digital wallet & payments backend built with **Java 21 + Spring Boot 3** — designed to demonstrate the backend skills FAANG/product companies test at SDE-2 level.
 
 ## Why this project
