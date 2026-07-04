@@ -15,7 +15,7 @@ Moving money is the hardest simple-sounding problem in backend engineering. This
 | "Save to DB and publish to Kafka" crashes in between (dual write) | **Transactional outbox** + polling relay |
 | Balance corruption is silent and unauditable | **Append-only double-entry ledger** — all entries net to zero |
 
-## Architecture
+## Architecture — two microservices
 
 ```mermaid
 flowchart LR
@@ -28,8 +28,20 @@ flowchart LR
     TX --> L[("ledger_entries<br/>append-only")]
     TX --> I[("idempotency_records")]
     TX --> O[("outbox_events")]
-    O --> R["OutboxRelay<br/>(poll → publish)"] -.-> K[["Kafka<br/>(pluggable)"]]
+    O --> R["OutboxRelay<br/>(poll → publish,<br/>at-least-once)"]
+    R -->|"HTTP + internal token<br/>(Kafka in prod)"| NS["notification-service :8081"]
+    NS --> PE[("processed_events<br/>dedupe on eventId")]
+    NS --> N[("notifications")]
 ```
+
+**payflow** (`:8080`) owns wallets, ledger, transfers. **notification-service** (`:8081`) consumes `TRANSFER_COMPLETED` events and records per-user notifications. Each service has its **own database** — no shared tables, communication only via events.
+
+### The end-to-end reliability chain (the microservices interview answer)
+1. Transfer commits balance change + outbox event in **one local transaction** (no dual write).
+2. Relay delivers with **at-least-once** semantics — a crash between publish and mark-published means redelivery.
+3. Consumer is **idempotent** — unique constraint on `eventId` in `processed_events` makes redelivery a no-op.
+4. Net effect: **exactly-once processing** built from at-least-once delivery + dedupe — the same recipe as Kafka + idempotent consumers.
+5. notification-service down? Events queue up unpublished and drain when it returns — graceful degradation, no data loss.
 
 ## Key design decisions (interview talking points)
 
@@ -46,8 +58,12 @@ flowchart LR
 
 ```bash
 # prerequisites: JDK 21, Maven
+# terminal 1 — notification service
+cd notification-service && mvn spring-boot:run
+# terminal 2 — payflow
 mvn spring-boot:run
 ```
+(payflow also runs standalone: set `payflow.events.webhook-enabled=false` and events are logged instead.)
 
 ```bash
 # 1. Register two users (each gets ₹1000 opening balance)

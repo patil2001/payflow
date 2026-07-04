@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * This test IS the interview demo — run it and show the invariants hold.
  */
-@SpringBootTest
+@SpringBootTest(properties = "payflow.events.webhook-enabled=false")
 class WalletServiceConcurrencyTest {
 
     @Autowired WalletService walletService;

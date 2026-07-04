@@ -19,6 +19,10 @@ spring:
       spec: maximumSize=10000,expireAfterWrite=60s
 
 payflow:
+  events:
+    webhook-url: http://localhost:8081/internal/events
+    internal-token: "payflow-internal-dev-token"
+    webhook-enabled: true   # set false to run payflow standalone (events logged only)
   jwt:
     # HMAC-SHA256 secret. In production this comes from a vault/env var, never source control.
     secret: "change-me-payflow-dev-secret-change-me-payflow-dev-secret"

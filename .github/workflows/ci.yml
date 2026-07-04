@@ -19,12 +19,18 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build and run tests
+      - name: Build and test payflow service
         run: mvn -B verify
+
+      - name: Build and test notification-service
+        run: mvn -B verify
+        working-directory: notification-service
 
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: target/surefire-reports/
+          path: |
+            target/surefire-reports/
+            notification-service/target/surefire-reports/

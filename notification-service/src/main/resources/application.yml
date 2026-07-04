@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:h2:mem:notifications;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+notification:
+  # Shared secret for service-to-service calls. In production: mTLS or
+  # gateway-issued service tokens (OAuth2 client credentials), never a static secret.
+  internal-token: "payflow-internal-dev-token"
+
+logging:
+  level:
+    com.payflow.notifications: DEBUG
