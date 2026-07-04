@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: payflow
+  datasource:
+    url: jdbc:h2:mem:payflow;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false   # anti-pattern in prod; fetch what you need in the service layer
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=10000,expireAfterWrite=60s
+
+payflow:
+  jwt:
+    # HMAC-SHA256 secret. In production this comes from a vault/env var, never source control.
+    secret: "change-me-payflow-dev-secret-change-me-payflow-dev-secret"
+    expiry-minutes: 60
+  rate-limit:
+    capacity: 20        # max burst per user
+    refill-per-second: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+
+logging:
+  level:
+    com.payflow: DEBUG
